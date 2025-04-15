@@ -119,7 +119,7 @@ int main(int argc, char *argv[]) {
     );
 
 
-    SDL_Renderer *renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
+    SDL_Renderer *renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_SOFTWARE);
 
     Player player = {START_X, START_Y, 50, 50, 0, 0, false};
 
@@ -255,7 +255,8 @@ int main(int argc, char *argv[]) {
             SDL_Color red = {255, 0, 0};
             SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
             SDL_RenderClear(renderer);
-
+            
+            SDL_Texture* brainrot = IMG_LoadTexture(renderer, "character.png"); 
             SDL_Surface* fallSurface = TTF_RenderText_Solid(font, "Game Over! You fell!", red);
             SDL_Texture* fallTexture = SDL_CreateTextureFromSurface(renderer, fallSurface);
             SDL_Rect fallRect = {WINDOW_WIDTH / 2 - fallSurface->w / 2, WINDOW_HEIGHT / 2 - fallSurface->h / 2, fallSurface->w, fallSurface->h};
