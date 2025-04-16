@@ -38,5 +38,5 @@ This repository includes all the games made using **SDL2 (Simple DirectMedia Lay
 
 - [Utsav Gupta](https://github.com/Utsav-X-bit/)
 - [Ronak Gupta](https://github.com/ronakgupta03)
-- [Bhavya Gupta](https://github.com/)
+- [Bhavya Gupta](https://github.com/CodebhavyaG)
 
