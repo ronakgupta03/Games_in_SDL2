@@ -84,7 +84,7 @@ Platform platforms[MAX_PLATFORMS] = {
     {{250, 450, 120, 20}, true},
     {{400, 350, 150, 20}, true},
     {{600, 250, 100, 20}, true},
-    {{100, 200, 180, 20}, true},
+    {{100, 250, 180, 20}, true},
     {{300, 150, 130, 20}, true},
     {{980, 500, 50, 20}, true},
     {{1130, 380, 50, 20}, true},
@@ -234,14 +234,13 @@ bool loadMedia() {
     return true;
 }
 
-// Initialize SDL
+
 bool initSDL() {
     if (SDL_Init(SDL_INIT_VIDEO) < 0) {
         SDL_Log("SDL could not initialize! SDL_Error: %s", SDL_GetError());
         return false;
     }
 
-    // Initialize SDL_image
     int imgFlags = IMG_INIT_PNG;
     if (!(IMG_Init(imgFlags) & imgFlags)) {
         SDL_Log("SDL_image could not initialize! SDL_image Error: %s", IMG_GetError());
@@ -280,9 +279,8 @@ bool initSDL() {
     return true;
 }
 
-// Clean up SDL resources
+
 void cleanupSDL() {
-    // Free loaded textures
     SDL_DestroyTexture(terrainTexture);
     SDL_DestroyTexture(playerTexture);
     SDL_DestroyTexture(enemyTexture);
@@ -302,7 +300,7 @@ void cleanupSDL() {
     SDL_Quit();
 }
 
-// Handle user input
+
 void handleInput(Player* player, bool* running) {
     SDL_Event event;
     const float moveSpeed = 5.0f;
@@ -331,23 +329,22 @@ void handleInput(Player* player, bool* running) {
     }
 }
 
-// Update physics
+
 void updatePhysics(Player* player) {
     const float gravity = 0.5f;
 
-    // Apply gravity only if player is not on the ground
-    if (!player->onGround) {
+    if (!player->onGround) { //gravity
         player->vy += gravity;
     }
 
     player->x += player->vx;
     player->y += player->vy;
 
-    // Reset ground state for this frame (it will be set to true elsewhere if grounded)
+
     player->onGround = false;
 
-    // Animation logic - only animate when moving
-    if (player->vx != 0) {
+   
+    if (player->vx != 0) {   //player
         player->frameTimer++;
         if (player->frameTimer >= player->frameDelay) {
             player->frame++;
@@ -357,21 +354,20 @@ void updatePhysics(Player* player) {
             player->frameTimer = 0;
         }
     } else {
-        player->frame = 0;  // Idle frame
+        player->frame = 0;  
     }
 
-    // Update enemy positions and animations
-    for (int i = 0; i < MAX_ENEMIES; i++) {
+    
+    for (int i = 0; i < MAX_ENEMIES; i++) {  //enemy
         enemies[i].x += enemies[i].vx;
 
-        // Update enemy facing direction based on velocity
         if (enemies[i].vx < 0) {
             enemies[i].facingLeft = false;
         } else if (enemies[i].vx > 0) {
             enemies[i].facingLeft = true;
         }
 
-        // Update enemy animation
+
         enemies[i].frameTimer++;
         if (enemies[i].frameTimer >= enemies[i].frameDelay) {
             enemies[i].frame++;
@@ -381,18 +377,18 @@ void updatePhysics(Player* player) {
             enemies[i].frameTimer = 0;
         }
 
-        // Patrol behavior - use patrol boundaries
+        
         if (enemies[i].x <= enemies[i].patrolStart || enemies[i].x >= enemies[i].patrolEnd) {
             enemies[i].vx *= -1;
         }
     }
 
-    // Prevent player from going off left edge or past level width
+
     if (player->x <= 0) player->x = 0;
     if (player->x >= LEVEL_WIDTH - player->w) player->x = LEVEL_WIDTH - player->w;
 
-    // Update coin animations
-    for (int i = 0; i < MAX_COINS; i++) {
+   
+    for (int i = 0; i < MAX_COINS; i++) {  // Coin Animation
         if (!coins[i].collected) {
             coins[i].frameTimer++;
             if (coins[i].frameTimer >= coins[i].frameDelay) {
@@ -406,19 +402,17 @@ void updatePhysics(Player* player) {
     }
 }
 
-// Check collisions with ground and platforms
+// Check collisions 
 void checkCollisions(Player* player) {
-    // Check collision with ground (only where ground exists)
+    
     float groundY = WINDOW_HEIGHT - GROUND_HEIGHT - player->h;
-    // Only check ground collision if we're within the level's horizontal bounds
-    // This fixes the "ground over void" glitch
+   
     if (player->y >= groundY && player->x < 800 ) {
         player->y = groundY;
         player->vy = 0;
         player->onGround = true;
     }
 
-    // Check collision with platforms
     for (int i = 0; i < MAX_PLATFORMS; i++) {
         if (!platforms[i].isActive) continue;
         
@@ -435,7 +429,7 @@ void checkCollisions(Player* player) {
         }
     }
 
-    // Check collision with coins
+   
     for (int i = 0; i < MAX_COINS; i++) {
         if (coins[i].collected) continue;
 
@@ -450,7 +444,7 @@ void checkCollisions(Player* player) {
     }
 }
 
-// Check collisions with enemies
+
 void checkEnemyCollisions(Player* player) {
     for (int i = 0; i < MAX_ENEMIES; i++) {
         if (player->x + player->w > enemies[i].x &&
@@ -465,7 +459,7 @@ void checkEnemyCollisions(Player* player) {
     }
 }
 
-// Display message on screen
+
 void displayMessage(const char* message, SDL_Color color) {
     SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
     SDL_RenderClear(renderer);
@@ -481,13 +475,13 @@ void displayMessage(const char* message, SDL_Color color) {
     
     SDL_RenderCopy(renderer, messageTexture, NULL, &messageRect);
     SDL_RenderPresent(renderer);
-    SDL_Delay(1000);  // Wait 1 second
+    SDL_Delay(1000);  
 
     SDL_FreeSurface(messageSurface);
     SDL_DestroyTexture(messageTexture);
 }
 
-// Check if player reached the goal
+
 void checkGoalCollision(Player* player) {
     if (player->x + player->w > goal.x &&
         player->x < goal.x + goal.w &&
@@ -499,7 +493,7 @@ void checkGoalCollision(Player* player) {
     }
 }
 
-// Check if player fell off the map
+
 void checkFallDetection(Player* player) {
     if (player->y > WINDOW_HEIGHT + 100) {
         displayMessage("Game Over! You fell!", (SDL_Color){255, 0, 0});
@@ -507,38 +501,38 @@ void checkFallDetection(Player* player) {
     }
 }
 
-// Update camera position
+
 void updateCamera(Player player) {
     camera.x = (int)(player.x + player.w / 2) - WINDOW_WIDTH / 2;
     camera.y = (int)(player.y + player.h / 2) - WINDOW_HEIGHT / 2;
     
-    // Clamp camera
+    
     if (camera.x < 0) camera.x = 0;
     if (camera.y < 0) camera.y = 0;
     if (camera.x > LEVEL_WIDTH - WINDOW_WIDTH) camera.x = LEVEL_WIDTH - WINDOW_WIDTH;
 }
 
-// Render the scene
+
 void renderScene(Player player) {
-    // Clear screen with sky blue
+    
     SDL_RenderClear(renderer);
     SDL_RenderCopy(renderer, bgTexture, NULL, NULL);
 
-    // Source rect for the ground tile
+   
     SDL_Rect groundSrcRect = { 0, 0, 32, 32 }; // The grass+dirt tile
     SDL_Rect dirtSrcRect = { 0, 16, 32, 16 };  // Just the dirt part
 
-    // Calculate visible portion of the ground
-    int startX = camera.x / 32;                       // First visible tile index
-    int endX = (camera.x + WINDOW_WIDTH) / 32 + 1;    // Last visible tile index
-    int groundX = 0;                                  // Position where ground starts
-    int groundEndX = 800 / 32;;                // Position where ground ends
+    
+    int startX = camera.x / 32;                       
+    int endX = (camera.x + WINDOW_WIDTH) / 32 + 1;    
+    int groundX = 0;                                  
+    int groundEndX = 800 / 32;;              
 
-    // Draw ground tiles only where ground exists (from 0 to level width)
+    //ground
     for (int i = startX; i <= endX; i++) {
-        // Only draw if the tile is within the ground bounds
+        
         if (i >= groundX && i < groundEndX) {
-            // Draw top grass+dirt tile
+            
             SDL_Rect groundDestRect = {
                 (i * 32) - camera.x,
                 WINDOW_HEIGHT - GROUND_HEIGHT - camera.y,
@@ -547,7 +541,7 @@ void renderScene(Player player) {
             };
             SDL_RenderCopy(renderer, terrainTexture, &groundSrcRect, &groundDestRect);
             
-            // Fill in dirt tiles below
+            // dirt tiles
             for (int j = 1; j < (GROUND_HEIGHT / 16); j++) {
                 SDL_Rect dirtDestRect = {
                     (i * 32) - camera.x,
@@ -560,10 +554,10 @@ void renderScene(Player player) {
         }
     }
 
-    // Define source rect for platform texture from tileset
-    SDL_Rect platformSrcRect = { 96, 0, 16, 16 }; // Adjust based on your tileset
+    
+    SDL_Rect platformSrcRect = { 96, 0, 16, 16 }; 
 
-    // Draw platforms using texture
+    
     for (int i = 0; i < MAX_PLATFORMS; i++) {
         if (!platforms[i].isActive) continue;
         
@@ -574,7 +568,7 @@ void renderScene(Player player) {
             platforms[i].rect.h
         };
         
-        // Draw platform using tileset - calculate how many tiles needed
+        
         int tilesNeeded = platforms[i].rect.w / 16;
         for (int j = 0; j < tilesNeeded; j++) {
             SDL_Rect tileDestRect = {
@@ -587,14 +581,14 @@ void renderScene(Player player) {
         }
     }
 
-    // Draw player using texture
+    //player
     SDL_Rect playerDestRect = {
         (int)(player.x - camera.x),
         (int)(player.y - camera.y),
         (int)player.w, (int)player.h
     };
     
-    // Adjust the source rectangle based on the sprite's frame
+
     SDL_Rect playerSrcRect = {
         player.frame * player.frameWidth,
         0,
@@ -602,13 +596,13 @@ void renderScene(Player player) {
         player.frameHeight
     };
     
-    // Flip texture based on direction
+    
     SDL_RendererFlip flip = player.facingLeft ? SDL_FLIP_HORIZONTAL : SDL_FLIP_NONE;
     
-    // Render the player with the current frame from the spritesheet
+    
     SDL_RenderCopyEx(renderer, playerTexture, &playerSrcRect, &playerDestRect, 0.0, NULL, flip);
 
-    // Draw coins using texture
+    
     for (int i = 0; i < MAX_COINS; i++) {
         if (coins[i].collected) continue;
 
@@ -629,7 +623,7 @@ void renderScene(Player player) {
         SDL_RenderCopy(renderer, coinTexture, &coinSrcRect, &coinDestRect);
     }
 
-    // Draw enemies using texture with animation frames
+    // enemy animation
     for (int i = 0; i < MAX_ENEMIES; i++) {
         SDL_Rect enemyDestRect = {
             enemies[i].x - camera.x,
@@ -638,20 +632,20 @@ void renderScene(Player player) {
             enemies[i].h
         };
         
-        // Set up source rectangle for the current animation frame
+        
         SDL_Rect enemySrcRect = {
-            enemies[i].frame * 32,  // 32px width frames
+            enemies[i].frame * 32,  
             0,
-            32,                      // 32x32 sprites
+            32,                      
             32
         };
         
-        // Flip enemy texture based on direction
+        
         SDL_RendererFlip enemyFlip = enemies[i].facingLeft ? SDL_FLIP_HORIZONTAL : SDL_FLIP_NONE;
         SDL_RenderCopyEx(renderer, enemyTexture, &enemySrcRect, &enemyDestRect, 0.0, NULL, enemyFlip);
     }
 
-    // Draw goal
+   
     SDL_Rect goalDraw = {
         goal.x - camera.x,
         goal.y - camera.y,
@@ -659,13 +653,13 @@ void renderScene(Player player) {
         goal.h
     };
     SDL_RenderCopy(renderer, goalTexture, NULL, &goalDraw);
-    // SDL_RenderFillRect(renderer, &goalDraw);
+    
 
-    // Draw score
+    
     char scoreText[32];
     sprintf(scoreText, "Score: %d", score);
 
-    SDL_Color textColor = { 255, 255, 255 }; // white
+    SDL_Color textColor = { 255, 255, 255 }; 
     SDL_Surface* textSurface = TTF_RenderText_Solid(font, scoreText, textColor);
     SDL_Texture* textTexture = SDL_CreateTextureFromSurface(renderer, textSurface);
 
@@ -675,53 +669,53 @@ void renderScene(Player player) {
     SDL_FreeSurface(textSurface);
     SDL_DestroyTexture(textTexture);
 
-    // Present the renderer
+    
     SDL_RenderPresent(renderer);
 }
 
 int main(int argc, char *argv[]) {
-    // Initialize SDL
+
     if (!initSDL()) {   
         return 1;
     }
     
-    // Load media (textures)
+    
     if (!loadMedia()) {
         return 1;
     }
     
-    // Create player
+    
     Player player = {START_X, START_Y, 50, 50, 0, 0, false, false};
     
-    // Initialize player animation properties
-    resetGame(&player);
     
-    // Game loop
+    resetGame(&player);
+   
+
     bool running = true;
     while (running) {
-        // Handle input
+        
         handleInput(&player, &running);
         
-        // Update physics
+       
         updatePhysics(&player);
         
-        // Handle collisions
+        
         checkCollisions(&player);
         checkEnemyCollisions(&player);
         checkGoalCollision(&player);
         checkFallDetection(&player);
         
-        // Update camera
+        
         updateCamera(player);
         
-        // Render scene
+        
         renderScene(player);
         
-        // Cap frame rate
-        SDL_Delay(16); // ~60 FPS
+        
+        SDL_Delay(16); 
     }
     
-    // Clean up resources
+    
     cleanupSDL();
     
     return 0;
